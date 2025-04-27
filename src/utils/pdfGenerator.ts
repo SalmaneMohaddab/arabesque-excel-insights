@@ -1,4 +1,3 @@
-
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { ExcelAnalysis } from './excelAnalyzer';
@@ -60,9 +59,18 @@ export const generatePDF = async (analysis: ExcelAnalysis, fileName: string) => 
       body: tableData,
       startY: tableStartY,
       theme: 'grid',
-      headStyles: { fillColor: [41, 128, 185], textColor: 255 },
-      styles: { font: 'courier', fontSize: 8, overflow: 'linebreak' },
-    });
+      styles: {
+        font: 'courier',
+        fontSize: 8,
+        overflow: 'linebreak',
+        halign: 'right'
+      },
+      headStyles: { 
+        fillColor: [41, 128, 185], 
+        textColor: 255,
+        halign: 'right'
+      }
+    } as any);
   }
   
   // Save the PDF

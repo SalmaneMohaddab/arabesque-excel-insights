@@ -1,13 +1,14 @@
-
 import React, { useState } from 'react';
 import { CloudUpload } from 'lucide-react';
 import { analyzeExcelFile } from '../utils/excelAnalyzer';
+import { useNavigate } from 'react-router-dom';
 
 interface FileUploadProps {
   onAnalysisComplete: (analysis: any) => void;
 }
 
 const FileUpload: React.FC<FileUploadProps> = ({ onAnalysisComplete }) => {
+  const navigate = useNavigate();
   const [isDragging, setIsDragging] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -54,6 +55,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onAnalysisComplete }) => {
     try {
       const analysis = await analyzeExcelFile(file);
       onAnalysisComplete(analysis);
+      navigate('/analysis', { state: { analysis } });
     } catch (err) {
       setError('حدث خطأ أثناء تحليل الملف. يرجى المحاولة مرة أخرى.');
       console.error(err);
