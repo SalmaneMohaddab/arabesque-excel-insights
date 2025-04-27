@@ -1,3 +1,4 @@
+
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { ExcelAnalysis } from './excelAnalyzer';
@@ -11,13 +12,9 @@ declare module 'jspdf' {
 }
 
 export const generatePDF = async (analysis: ExcelAnalysis, fileName: string) => {
-  const doc = new jsPDF();
+  const doc = new jsPDF('landscape');
 
   // Add Arabic font support
-  // Note: In a real application, you would need to add proper Arabic font support
-  // This is a simplified version
-
-  // Set RTL
   doc.setR2L(true);
 
   // Add title
@@ -31,48 +28,34 @@ export const generatePDF = async (analysis: ExcelAnalysis, fileName: string) => 
   doc.text(`عدد الصفوف: ${analysis.rowCount}`, 20, 60);
   doc.text(`عدد الأعمدة: ${analysis.columnCount}`, 20, 70);
   
-  // Add sheet names
-  doc.text('أسماء الأوراق:', 20, 90);
-  analysis.sheetNames.forEach((name, index) => {
-    doc.text(`${index + 1}. ${name}`, 30, 100 + (index * 10));
-  });
+  // Add sheet information
+  doc.text('معلومات الملف:', 20, 90);
   
-  // Add column names
-  const startY = 100 + (analysis.sheetNames.length * 10) + 20;
-  doc.text('أسماء الأعمدة:', 20, startY);
-  analysis.columnNames.forEach((name, index) => {
-    doc.text(`${index + 1}. ${name}`, 30, startY + 10 + (index * 10));
-  });
-  
-  // Add sample data table if available
+  // Add table with student data
   if (analysis.sampleData.length > 0) {
-    const tableStartY = startY + 10 + (analysis.columnNames.length * 10) + 20;
-    doc.text('عينة من البيانات:', 20, tableStartY - 10);
-    
-    const tableHeaders = analysis.columnNames;
-    const tableData = analysis.sampleData.map(row => {
-      return tableHeaders.map(header => row[header]);
-    });
+    const tableStartY = 100;
     
     doc.autoTable({
-      head: [tableHeaders],
-      body: tableData,
+      head: [analysis.columnNames],
+      body: analysis.sampleData.map(row => 
+        analysis.columnNames.map(header => row[header] || '')
+      ),
       startY: tableStartY,
       theme: 'grid',
       styles: {
-        font: 'courier',
+        font: 'helvetica',
         fontSize: 8,
-        overflow: 'linebreak',
         halign: 'right'
       },
-      headStyles: { 
-        fillColor: [41, 128, 185], 
+      headStyles: {
+        fillColor: [41, 128, 185],
         textColor: 255,
         halign: 'right'
       }
-    } as any);
+    });
   }
   
-  // Save the PDF
-  doc.save(`تحليل_${fileName.replace('.xlsx', '')}.pdf`);
+  // Save the PDF with the original file name
+  doc.save(`تحليل_${fileName.replace('.xlsx', '')}.pdf`, { returnPromise: true });
 };
+

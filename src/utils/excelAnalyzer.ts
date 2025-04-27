@@ -8,6 +8,11 @@ export interface ExcelAnalysis {
   columnCount: number;
   sampleData: any[];
   columnNames: string[];
+  stats: {
+    averageScores: { [key: string]: number };
+    maxScores: { [key: string]: number };
+    minScores: { [key: string]: number };
+  };
 }
 
 export const analyzeExcelFile = (file: File): Promise<ExcelAnalysis> => {
@@ -29,22 +34,39 @@ export const analyzeExcelFile = (file: File): Promise<ExcelAnalysis> => {
         // Extract column names from the first row
         const columnNames = Object.keys(jsonData[0] || {});
         
-        // Prepare sample data (first 5 rows)
-        const sampleData = jsonData.slice(0, 5);
+        // Calculate statistics for score columns
+        const scoreColumns = columnNames.filter(col => 
+          col.includes('النقطة') || col.includes('الفرض')
+        );
         
+        const stats = {
+          averageScores: {},
+          maxScores: {},
+          minScores: {}
+        };
+        
+        scoreColumns.forEach(column => {
+          const scores = jsonData
+            .map(row => parseFloat(row[column]))
+            .filter(score => !isNaN(score));
+            
+          stats.averageScores[column] = scores.length ? 
+            scores.reduce((a, b) => a + b, 0) / scores.length : 0;
+          stats.maxScores[column] = Math.max(...scores);
+          stats.minScores[column] = Math.min(...scores);
+        });
+
         const analysis: ExcelAnalysis = {
           fileName: file.name,
           sheetNames: workbook.SheetNames,
           rowCount: jsonData.length,
           columnCount: columnNames.length,
-          sampleData,
+          sampleData: jsonData.slice(0, 5),
           columnNames,
+          stats
         };
         
-        // Simulate a delay to show loading state
-        setTimeout(() => {
-          resolve(analysis);
-        }, 1000);
+        resolve(analysis);
         
       } catch (error) {
         reject(error);
